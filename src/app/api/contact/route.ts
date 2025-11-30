@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { google } from "googleapis";
 
 interface ContactData {
   name: string;
@@ -7,14 +8,25 @@ interface ContactData {
   message?: string;
 }
 
-// Lưu trữ tạm thời (trong production nên dùng database)
-const contacts: ContactData[] = [];
+const SPREADSHEET_ID = "1HV2wwSmk4iLB_w-veQ40V-dj0h0Wrxqo--s0kl-ncm0";
+
+async function getGoogleSheets() {
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    },
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
+
+  const sheets = google.sheets({ version: "v4", auth });
+  return sheets;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const data: ContactData = await request.json();
 
-    // Validate required fields
     if (!data.name || !data.phone) {
       return NextResponse.json(
         { error: "Vui lòng điền đầy đủ họ tên và số điện thoại" },
@@ -22,7 +34,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate phone number format (Vietnam)
     const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
     if (!phoneRegex.test(data.phone.replace(/\s/g, ""))) {
       return NextResponse.json(
@@ -31,21 +42,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save contact (in production, save to database)
-    const contact = {
-      ...data,
-      createdAt: new Date().toISOString(),
-    };
-    contacts.push(contact);
+    const sheets = await getGoogleSheets();
+    const now = new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 
-    // Log for debugging (in production, send email notification)
-    console.log("New contact submission:", contact);
-
-    // TODO: Integrate with email service (SendGrid, Nodemailer, etc.)
-    // await sendEmailNotification(contact);
-
-    // TODO: Integrate with CRM or Google Sheets
-    // await saveToGoogleSheets(contact);
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: "Sheet1!A:E",
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [[now, data.name, data.phone, data.email || "", data.message || ""]],
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -58,12 +65,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-export async function GET() {
-  // API để lấy danh sách contacts (cần authentication trong production)
-  return NextResponse.json({
-    total: contacts.length,
-    contacts: contacts.slice(-10), // Chỉ trả về 10 contacts gần nhất
-  });
 }
