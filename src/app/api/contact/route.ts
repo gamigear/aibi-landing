@@ -34,8 +34,6 @@ export async function POST(request: NextRequest) {
   try {
     const data: ContactData = await request.json();
 
-    console.log("Received data:", data);
-
     if (!data.name || !data.phone) {
       return NextResponse.json(
         { error: "Vui lòng điền đầy đủ họ tên và số điện thoại" },
@@ -46,9 +44,7 @@ export async function POST(request: NextRequest) {
     const sheets = await getGoogleSheets();
     const now = new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 
-    console.log("Appending to sheet:", SPREADSHEET_ID);
-
-    const response = await sheets.spreadsheets.values.append({
+    await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: "Sheet1!A:E",
       valueInputOption: "USER_ENTERED",
@@ -56,8 +52,6 @@ export async function POST(request: NextRequest) {
         values: [[now, data.name, data.phone, data.email || "", data.message || ""]],
       },
     });
-
-    console.log("Sheet response:", response.status);
 
     return NextResponse.json({
       success: true,
@@ -73,8 +67,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({ 
+  return NextResponse.json({
     status: "API is working",
-    hasCredentials: !!(process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY)
+    hasCredentials: !!(process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY),
   });
 }
