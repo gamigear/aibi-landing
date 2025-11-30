@@ -5,10 +5,13 @@ export default function ContactForm() {
   const [formData, setFormData] = useState({ name: "", phone: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+    setSuccess(false);
     
     try {
       const res = await fetch("/api/contact", {
@@ -17,13 +20,18 @@ export default function ContactForm() {
         body: JSON.stringify(formData),
       });
       
-      if (res.ok) {
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
         setSuccess(true);
         setFormData({ name: "", phone: "", email: "", message: "" });
-        setTimeout(() => setSuccess(false), 5000);
+        setTimeout(() => setSuccess(false), 10000);
+      } else {
+        setError(data.error || "Có lỗi xảy ra, vui lòng thử lại");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
+      setError("Không thể kết nối server, vui lòng thử lại");
     } finally {
       setLoading(false);
     }
@@ -74,8 +82,15 @@ export default function ContactForm() {
           <div id="contact-form" className="bg-white p-8 rounded-2xl shadow-xl">
             <h3 className="text-2xl font-bold mb-6">Đăng Ký Nhận Tư Vấn</h3>
             {success && (
-              <div className="bg-green-100 text-green-700 p-4 rounded-lg mb-6">
+              <div className="bg-green-100 text-green-700 p-4 rounded-lg mb-6 flex items-center gap-2">
+                <i className="fas fa-check-circle"></i>
                 Cảm ơn bạn đã đăng ký! Chúng tôi sẽ liên hệ sớm nhất.
+              </div>
+            )}
+            {error && (
+              <div className="bg-red-100 text-red-700 p-4 rounded-lg mb-6 flex items-center gap-2">
+                <i className="fas fa-exclamation-circle"></i>
+                {error}
               </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-5">
