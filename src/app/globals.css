@@ -12,7 +12,7 @@ html {
 }
 
 body {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-inter), 'Inter', sans-serif;
 }
 
 @layer utilities {
