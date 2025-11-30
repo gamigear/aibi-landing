@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AIBI Landing Page - Next.js + Tailwind CSS
 
-## Getting Started
+Landing page bán sản phẩm Máy Năng Lượng Cộng Hưởng Sinh Học AIBI.
 
-First, run the development server:
+## 🚀 Công nghệ sử dụng
+
+- **Next.js 16** - React framework với App Router
+- **Tailwind CSS** - Utility-first CSS framework
+- **TypeScript** - Type safety
+- **Font Awesome** - Icons
+
+## 📦 Cài đặt
+
+```bash
+npm install
+```
+
+## 🛠️ Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở [http://localhost:3000](http://localhost:3000) để xem kết quả.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Build Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## 📁 Cấu trúc dự án
 
-To learn more about Next.js, take a look at the following resources:
+```
+aibi-landing/
+├── public/
+│   └── media/           # Hình ảnh sản phẩm
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── contact/ # API xử lý form liên hệ
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   └── components/      # React components
+│       ├── Header.tsx
+│       ├── Hero.tsx
+│       ├── Features.tsx
+│       ├── Benefits.tsx
+│       ├── Gallery.tsx
+│       ├── VideoSection.tsx
+│       ├── Testimonials.tsx
+│       ├── Pricing.tsx
+│       ├── ContactForm.tsx
+│       ├── Footer.tsx
+│       └── FloatingCTA.tsx
+└── package.json
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🌐 Triển khai
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Vercel (Khuyến nghị)
 
-## Deploy on Vercel
+```bash
+npm i -g vercel
+vercel
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Docker
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
+
+### VPS/Server
+
+```bash
+# Build
+npm run build
+
+# Start với PM2
+pm2 start npm --name "aibi-landing" -- start
+```
+
+## 🔧 API Endpoints
+
+### POST /api/contact
+Nhận thông tin liên hệ từ form.
+
+**Request Body:**
+```json
+{
+  "name": "Nguyễn Văn A",
+  "phone": "0981237386",
+  "email": "email@example.com",
+  "message": "Nội dung tư vấn"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Cảm ơn bạn đã đăng ký!"
+}
+```
+
+## 📧 Tích hợp Email (TODO)
+
+Để gửi email thông báo khi có form mới, cài đặt:
+
+```bash
+npm install nodemailer @sendgrid/mail
+```
+
+## 🗄️ Tích hợp Database (TODO)
+
+Để lưu trữ contacts vào database:
+
+```bash
+# MongoDB
+npm install mongoose
+
+# PostgreSQL
+npm install prisma @prisma/client
+```
+
+## 📱 Thông tin liên hệ
+
+- **Hotline:** 0981 237 386
+- **Email:** contact@aibi.vn
+- **Website:** https://aibi.vn
+- **Địa chỉ:** Số 8 Ngõ 121 Thái Hà, Đống Đa, Hà Nội
